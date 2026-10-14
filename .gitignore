@@ -1,0 +1,15 @@
+build/
+dist/
+target/
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.pyc
+.env
+.env.*
+!.env.example
+state/
+
+comfyui/koharu_nodes/config.json
+comfyui/koharu_nodes/profiles/

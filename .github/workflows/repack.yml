@@ -1,0 +1,59 @@
+name: Windows artifact repackage (manual)
+on:
+  workflow_dispatch:
+    inputs:
+      source_run:
+        description: Successful Windows build run to repackage
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+jobs:
+  repackage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Download existing build without recompilation
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: koharu-remote-windows-x64-candidate
+          path: incoming
+          run-id: ${{ inputs.source_run }}
+          github-token: ${{ github.token }}
+      - name: Validate and stage one unchanged deployment
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json, shutil
+          from tools.verify_sums import verify
+          folders = [p for p in Path('incoming').glob('koharu-remote-*-windows-x64') if p.is_dir()]
+          if len(folders) != 1:
+              raise RuntimeError('Expected exactly one deployment folder')
+          folder = folders[0]
+          verify(folder)
+          if not (folder / 'bin/koharu-remote.exe').is_file():
+              raise RuntimeError('Deployment executable missing')
+          if any(p.suffix.lower() == '.zip' for p in folder.rglob('*') if p.is_file()):
+              raise RuntimeError('Nested archive in deployment')
+          info = json.loads((folder / 'BUILD_INFO.json').read_text(encoding='utf-8'))
+          if info.get('verification') != 'WINDOWS_BUILD_AND_FOCUSED_TESTS_PASS_LIVE_UI_AND_GPU_NOT_RUN':
+              raise RuntimeError('Unexpected build verification state')
+          staged = Path('repacked') / folder.name
+          shutil.copytree(folder, staged)
+          verify(staged)
+          print(f'SINGLE_DEPLOYMENT_OK: {sum(p.is_file() for p in staged.rglob("*"))} files; no inner ZIP')
+          print('Original binary files and BUILD_INFO.json preserved')
+          print('BUILD_PROVENANCE: ' + json.dumps({key: info.get(key) for key in ('version', 'patch_version', 'source_commit', 'patch_sha256', 'cargo_lock_sha256')}))
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: koharu-remote-windows-x64-candidate-single-zip
+          path: repacked/
+          if-no-files-found: error
+          retention-days: 14

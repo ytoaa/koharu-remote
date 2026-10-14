@@ -1,0 +1,60 @@
+name: Watch official Koharu
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+  workflow_run:
+    workflows: [Koharu CI and source]
+    types: [completed]
+    branches: [main]
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+concurrency:
+  group: upstream-watch
+  cancel-in-progress: false
+jobs:
+  discover:
+    if: github.event_name != 'workflow_run'
+    runs-on: ubuntu-latest
+    outputs:
+      branch: ${{ steps.watch.outputs.branch }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: main
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Pin new release in candidate PR
+        id: watch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python tools/watch_upstream.py
+  candidate:
+    needs: discover
+    if: needs.discover.outputs.branch != ''
+    # Explicit checks run for GITHUB_TOKEN-created PRs; native builds are opt-in.
+    uses: ./.github/workflows/windows.yml
+    with:
+      source_ref: ${{ needs.discover.outputs.branch }}
+      build_windows: false
+    permissions:
+      contents: read
+      actions: write
+  cleanup:
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.event == 'push' && github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - name: Remove closed PR branches already contained in main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python tools/cleanup_branches.py
