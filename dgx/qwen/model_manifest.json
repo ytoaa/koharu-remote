@@ -1,0 +1,71 @@
+{
+  "repo": "Qwen/Qwen-Image-2.1-Turbo",
+  "revision": "fc13ba1986fcb905854dc8de2f52eee395f49b5b",
+  "diffusers_commit": "916a5791ed5f29d966200d2eee53f06862ec4434",
+  "files": {
+    "LICENSE": {
+      "size": 7831,
+      "git_blob_sha1": "13ae08d5a5828f508cf0e852b1b316c0c0bbb9b3"
+    },
+    "model_index.json": {
+      "size": 578,
+      "git_blob_sha1": "cdc1dae2997ff637225c42c388196b38a9bbaae8"
+    },
+    "processor/chat_template.jinja": {
+      "size": 5292,
+      "git_blob_sha1": "124386803f142761528f710e77ae483f5f8c4fc4"
+    },
+    "processor/processor_config.json": {
+      "size": 1300,
+      "git_blob_sha1": "7ad6acdf4203f22b7b990e36ccc3a1fe38563d5e"
+    },
+    "processor/tokenizer.json": {
+      "size": 11422650,
+      "sha256": "be75606093db2094d7cd20f3c2f385c212750648bd6ea4fb2bf507a6a4c55506"
+    },
+    "processor/tokenizer_config.json": {
+      "size": 705,
+      "git_blob_sha1": "6577e86ca277ad0367551e280ba1d58ad4d42c52"
+    },
+    "scheduler/scheduler_config.json": {
+      "size": 486,
+      "git_blob_sha1": "72837792c1944182b3707415cdaeb825e6bf5598"
+    },
+    "text_encoder/config.json": {
+      "size": 1542,
+      "git_blob_sha1": "b5881fa79f7c988a9ac2f91e4f1192deed7ac034"
+    },
+    "text_encoder/generation_config.json": {
+      "size": 241,
+      "git_blob_sha1": "5d04d3c8d7d02d1092ae021f236c5b1c11661a96"
+    },
+    "text_encoder/model.safetensors": {
+      "size": 17534340584,
+      "sha256": "a1eee8233f3063466dd3b06e857b0a2cf13a77c543908374771d51a546beb2e0"
+    },
+    "transformer/config.json": {
+      "size": 370,
+      "git_blob_sha1": "b3f8d1cf08a94a1d4ec09e2bfeb5344af25f2983"
+    },
+    "transformer/diffusion_pytorch_model-00001-of-00002.safetensors": {
+      "size": 9968332504,
+      "sha256": "6cccd922767f01694461bdcf1f34ea7b771f3442e4d5e338ea9aa55277431cc0"
+    },
+    "transformer/diffusion_pytorch_model-00002-of-00002.safetensors": {
+      "size": 4261951904,
+      "sha256": "69f53ebb063d2f606bdaff7e22e0e2144f28d978d73dc75e6e4293fc5982eab5"
+    },
+    "transformer/diffusion_pytorch_model.safetensors.index.json": {
+      "size": 30283,
+      "git_blob_sha1": "bd64579cfd093a6a4ea8fb492217790018c53c0d"
+    },
+    "vae/config.json": {
+      "size": 2172,
+      "git_blob_sha1": "9b780c2dd9601cb0b93ae8f462b58dd3a7468347"
+    },
+    "vae/diffusion_pytorch_model.safetensors": {
+      "size": 675508656,
+      "sha256": "71879ffd5321e6d10c3c87513e2b474b1252efa7f3dec2969214a9bf06a6dd5c"
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "productName": "Koharu Remote",
+  "identifier": "dev.koharu.remote",
+  "bundle": {"active": false, "createUpdaterArtifacts": false, "windows": {"signCommand": null}},
+  "plugins": {"updater": {"endpoints": []}}
+}

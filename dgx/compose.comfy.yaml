@@ -1,0 +1,35 @@
+name: koharu-qwen
+services:
+  qwen:
+    image: local/koharu-qwen-comfy:0.6.0
+    platform: linux/arm64
+    build:
+      context: .
+      dockerfile: Dockerfile.comfy
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "${QWEN_BIND_ADDRESS:-127.0.0.1}:8765:8765"
+    environment:
+      QWEN_BACKEND: comfyui
+      QWEN_COMFY_URL: ${QWEN_COMFY_URL:-http://host.docker.internal:8188}
+      QWEN_COMFY_MODEL: ${QWEN_COMFY_MODEL:-qwen_image_2.1_turbo_int8_convrot.safetensors}
+      QWEN_COMFY_TEXT_ENCODER: ${QWEN_COMFY_TEXT_ENCODER:-qwen3vl_8b_int8_convrot.safetensors}
+      QWEN_COMFY_VAE: ${QWEN_COMFY_VAE:-qwen_image_2.1_vae_bf16.safetensors}
+      QWEN_COMFY_TIMEOUT: ${QWEN_COMFY_TIMEOUT:-1800}
+      ROREM_AUTH_REQUIRED: ${QWEN_AUTH_REQUIRED:-false}
+      ROREM_API_TOKEN: ${QWEN_API_TOKEN:-}
+      ROREM_MAX_PIXELS: ${QWEN_MAX_PIXELS:-64000000}
+      ROREM_MAX_UPLOAD_BYTES: ${QWEN_MAX_UPLOAD_BYTES:-134217728}
+    healthcheck:
+      test: ["CMD", "python", "-m", "qwen.healthcheck"]
+      interval: 30s
+      timeout: 8s
+      start_period: 900s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

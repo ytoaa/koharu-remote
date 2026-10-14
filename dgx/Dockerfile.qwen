@@ -1,0 +1,20 @@
+ARG QWEN_BASE_IMAGE=local/koharu-rorem:0.2.3
+FROM ${QWEN_BASE_IMAGE}
+ARG QWEN_SOURCE_SHA
+LABEL org.koharu.qwen.version="0.6.0" org.koharu.qwen.source="${QWEN_SOURCE_SHA}"
+WORKDIR /app
+COPY requirements.qwen.txt /tmp/qwen-requirements.txt
+COPY protect_torch.py /tmp/protect_torch.py
+RUN apt-get update && apt-get install -y --no-install-recommends git \
+    && rm -rf /var/lib/apt/lists/* \
+    && /usr/bin/python3 /tmp/protect_torch.py before \
+    && /usr/bin/python3 -m venv --system-site-packages /opt/koharu-qwen \
+    && /opt/koharu-qwen/bin/python -m pip install --no-cache-dir \
+       -c /tmp/torch-constraints.txt -r /tmp/qwen-requirements.txt --report /app/qwen-pip-report.json \
+    && /opt/koharu-qwen/bin/python /tmp/protect_torch.py after \
+    && /opt/koharu-qwen/bin/python -c "from diffusers import QwenImage21Pipeline" \
+    && /opt/koharu-qwen/bin/python -m pip freeze > /app/qwen-build-packages.txt
+ENV PATH="/opt/koharu-qwen/bin:${PATH}" PYTHONUNBUFFERED=1
+COPY rorem /app/rorem
+COPY qwen /app/qwen
+CMD ["python", "-m", "uvicorn", "qwen.app:app", "--host", "0.0.0.0", "--port", "8765", "--workers", "1", "--limit-concurrency", "8"]

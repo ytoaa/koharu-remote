@@ -1,0 +1,8 @@
+FROM python:3.12-slim
+ARG QWEN_SOURCE_SHA=unknown
+LABEL org.koharu.qwen.version="0.6.0" org.koharu.qwen.source=$QWEN_SOURCE_SHA
+WORKDIR /app
+RUN pip install --no-cache-dir fastapi==0.142.4 uvicorn==0.34.0 python-multipart==0.0.32 Pillow==12.3.0
+COPY qwen /app/qwen
+COPY rorem /app/rorem
+CMD ["python", "-m", "uvicorn", "qwen.app:app", "--host", "0.0.0.0", "--port", "8765"]

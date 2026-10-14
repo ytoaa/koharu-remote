@@ -1,0 +1,11 @@
+# Isolated Qwen image only; constrain NVIDIA torch with protect_torch.py.
+diffusers @ git+https://github.com/huggingface/diffusers.git@916a5791ed5f29d966200d2eee53f06862ec4434
+transformers==5.19.0
+accelerate==1.15.0
+huggingface-hub==1.33.0
+safetensors==0.8.0
+fastapi==0.142.4
+uvicorn==0.34.0
+python-multipart==0.0.32
+Pillow==12.3.0
+numpy==2.2.6

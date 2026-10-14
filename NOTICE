@@ -1,0 +1,11 @@
+Koharu Remote
+
+Derived from Koharu: https://github.com/koharu-rs/koharu
+Koharu copyright (c) 2025-2026 Mayo Takanashi and Koharu contributors.
+Original MIT and Apache-2.0 license texts are preserved in LICENSE-MIT and LICENSE-APACHE.
+
+Includes selected Hi-SAM inference modules from https://github.com/ymy-k/Hi-SAM.
+Copyright Meta Platforms, Inc. and affiliates and Hi-SAM contributors.
+See dgx/vision/_text_sam/LICENSE and dgx/vision/_text_sam/NOTICE.
+
+See THIRD_PARTY_NOTICES.md for source revisions, local modifications and external model terms.

@@ -1,0 +1,8 @@
+# Reuse the retained, verified service image. No pip, model downloads or CUDA changes.
+ARG ROREM_BASE_IMAGE
+FROM ${ROREM_BASE_IMAGE}
+ARG ROREM_SOURCE_SHA
+LABEL org.koharu.rorem.version="0.2.3" \
+      org.koharu.rorem.deployment="unified-1" \
+      org.koharu.rorem.source="${ROREM_SOURCE_SHA}"
+COPY rorem /app/rorem

@@ -1,0 +1,11 @@
+# New vision container only. NVIDIA torch family is constrained by protect_torch.py.
+rfdetr==1.7.0
+transformers==5.19.0
+supervision==0.27.0
+safetensors==0.8.0
+fastapi==0.142.4
+uvicorn==0.34.0
+python-multipart==0.0.32
+Pillow==12.3.0
+httpx==0.28.1
+numpy==2.2.6

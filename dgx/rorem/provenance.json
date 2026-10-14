@@ -1,0 +1,59 @@
+{
+  "repository": "ytoaa/koharu-companion-runtime-adapter",
+  "commit": "ced08d90bc06dece6792b1cf3f61b623615f2ae1",
+  "service_version": "0.2.3",
+  "deployment_revision": "unified-1",
+  "authentication": "optional-1",
+  "files": {
+    "rorem/__init__.py": {
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "imported_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "current_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "rorem/app.py": {
+      "original_sha256": "12f04bff0dd4ea59707d925743383167d82e34489b0de42e8fe0f17dd4a95804",
+      "imported_sha256": "1d147cf5a1ad7df423e821367fff0bc564a3ca484c5d871cb0166a19437a53c8",
+      "current_sha256": "973f5050e3675228cf3beb365971238c616699d3954b036378c8cedb2d307480"
+    },
+    "rorem/backend.py": {
+      "original_sha256": "d7ec9b9da11c26c83e31afd86c8d7dc0183dd3e0d813d7feafe6f089f4b83453",
+      "imported_sha256": "d7ec9b9da11c26c83e31afd86c8d7dc0183dd3e0d813d7feafe6f089f4b83453",
+      "current_sha256": "f67a4d9c25ba4388aba44c9281159b9903e4de0a74e7203453f689ff8e2d4f46"
+    },
+    "rorem/healthcheck.py": {
+      "original_sha256": "07fa7cf24dc05314744b12550b3b06d38cbc50361d3ecd24c581da9b05977fd0",
+      "imported_sha256": "f7ef1060d43b75267d2ff3b9c22e01dab26af40d0584fcf8f58438acf1fec817",
+      "current_sha256": "f7ef1060d43b75267d2ff3b9c22e01dab26af40d0584fcf8f58438acf1fec817"
+    },
+    "rorem/limits.py": {
+      "original_sha256": "6a7a756e75fb1c7fecf62ad240dec995c38b560aa090c7858e66a991fec2f958",
+      "imported_sha256": "6a7a756e75fb1c7fecf62ad240dec995c38b560aa090c7858e66a991fec2f958",
+      "current_sha256": "6a7a756e75fb1c7fecf62ad240dec995c38b560aa090c7858e66a991fec2f958"
+    },
+    "rorem/manifest.py": {
+      "original_sha256": "0ee4b4f41634640b26dfde704542764b81b6c4d574803c988575090357386ee7",
+      "imported_sha256": "0ee4b4f41634640b26dfde704542764b81b6c4d574803c988575090357386ee7",
+      "current_sha256": "0ee4b4f41634640b26dfde704542764b81b6c4d574803c988575090357386ee7"
+    },
+    "rorem/model_files.py": {
+      "original_sha256": "b3b1ef608192fcfcbf20b144df372980f98fcf36b2a253f8cb4e1bb04b455dae",
+      "imported_sha256": "b3b1ef608192fcfcbf20b144df372980f98fcf36b2a253f8cb4e1bb04b455dae",
+      "current_sha256": "b3b1ef608192fcfcbf20b144df372980f98fcf36b2a253f8cb4e1bb04b455dae"
+    },
+    "rorem/options.py": {
+      "original_sha256": "98d87852f78fad9d1c3b4f5563eaf8b0854584725d6845d3fa816f8629f5a2e8",
+      "imported_sha256": "98d87852f78fad9d1c3b4f5563eaf8b0854584725d6845d3fa816f8629f5a2e8",
+      "current_sha256": "f8b27dbd023c881e73518c953aa3beed1b176bd891a17555b9c03cf90a144725"
+    },
+    "rorem/strategy.py": {
+      "original_sha256": "255bf6df1b2725a7bdcfd693076b3c679bc5c54c9312fa3f27e39507def4a9aa",
+      "imported_sha256": "255bf6df1b2725a7bdcfd693076b3c679bc5c54c9312fa3f27e39507def4a9aa",
+      "current_sha256": "187fa63d075b316df4a359ed2ededed7832319fdd9efc0bdf217f0c9d29f9762"
+    }
+  },
+  "upload_revision": "configurable-1",
+  "added_files": {
+    "rorem/upload_limits.py": "daa10fee6c6d150575f7fb2a79c555215e7620b21b5176cf1c1a6943efb9d2d6"
+  },
+  "options_revision": "custom-3-shared-qwen-http"
+}

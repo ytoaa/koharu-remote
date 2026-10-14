@@ -1,0 +1,60 @@
+name: koharu-model-services
+services:
+  rorem:
+    image: ${ROREM_IMAGE:?Run manage.py rorem adopt and build first}
+    platform: linux/arm64
+    restart: unless-stopped
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:8765:8765"
+    environment:
+      ROREM_AUTH_REQUIRED: ${ROREM_AUTH_REQUIRED:-false}
+      ROREM_API_TOKEN: ${ROREM_API_TOKEN:-}
+      ROREM_PIPELINE: /models/pipeline
+      ROREM_LORA: /models/lora
+      ROREM_MAX_PIXELS: ${ROREM_MAX_PIXELS:-64000000}
+      ROREM_MAX_UPLOAD_BYTES: ${ROREM_MAX_UPLOAD_BYTES:-134217728}
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
+      HF_HUB_DISABLE_TELEMETRY: "1"
+      HF_HOME: /cache/huggingface
+      XDG_CACHE_HOME: /cache/xdg
+      TORCH_HOME: /cache/torch
+      CUDA_CACHE_PATH: /cache/cuda
+    volumes:
+      - type: bind
+        source: ${ROREM_PIPELINE_DIR:?Run adopt first}
+        target: /models/pipeline
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${ROREM_LORA_DIR:?Run adopt first}
+        target: /models/lora
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${ROREM_CACHE_DIR:?Run adopt first}
+        target: /cache
+        bind:
+          create_host_path: false
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "python", "-m", "rorem.healthcheck"]
+      interval: 30s
+      timeout: 8s
+      start_period: 600s
+      retries: 3
+    shm_size: 1gb
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+# Same project/service identity as the existing RORem; no vision or vLLM here.

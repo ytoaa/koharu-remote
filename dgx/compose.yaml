@@ -1,0 +1,79 @@
+name: koharu-remote-models
+services:
+  vision:
+    image: local/koharu-vision:0.6.0
+    platform: linux/arm64
+    build:
+      context: .
+      args:
+        VISION_BASE_IMAGE: ${VISION_BASE_IMAGE:-local/koharu-rorem:0.2.3}
+    restart: unless-stopped
+    # DGX Linux: detector and Hayai share one process, endpoint and CUDA queue.
+    # Bind is configured at runtime, including on the already-built vision image.
+    network_mode: host
+    command: ["python", "-m", "uvicorn", "vision.app:app", "--host", "${VISION_BIND_ADDRESS:-127.0.0.1}", "--port", "8766", "--workers", "1", "--limit-concurrency", "8"]
+    environment:
+      VISION_BIND_ADDRESS: ${VISION_BIND_ADDRESS:-127.0.0.1}
+      VISION_AUTH_REQUIRED: ${VISION_AUTH_REQUIRED:-false}
+      VISION_API_TOKEN: ${VISION_API_TOKEN:-}
+      VISION_MODEL_DIR: /models/layout
+      VISION_OCR_MODEL_DIR: /models/hayai
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
+      HF_HUB_DISABLE_TELEMETRY: "1"
+      HF_HOME: /cache/huggingface
+      XDG_CACHE_HOME: /cache/xdg
+      TORCH_HOME: /cache/torch
+      CUDA_CACHE_PATH: /cache/cuda
+    volumes:
+      - type: bind
+        source: ${VISION_MODEL_DIR:?Run prepare first}
+        target: /models/layout
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${VISION_OCR_MODEL_DIR:?Run prepare --download-ocr first}
+        target: /models/hayai
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${VISION_CACHE_DIR:?Run prepare first}
+        target: /cache
+        bind:
+          create_host_path: false
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      # Health waits for both models and their startup warmup.
+      test:
+        - CMD
+        - python
+        - -c
+        - |
+          import ipaddress, json, os, urllib.request
+          ip = ipaddress.ip_address(os.environ['VISION_BIND_ADDRESS'])
+          host = ('::1' if ip.version == 6 else '127.0.0.1') if ip.is_unspecified else str(ip)
+          if ip.version == 6: host = '[' + host + ']'
+          token = os.environ.get('VISION_API_TOKEN', '')
+          request = urllib.request.Request('http://' + host + ':8766/health', headers={'Authorization': 'Bearer ' + token} if token else {})
+          opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+          with opener.open(request, timeout=5) as response: data = json.load(response)
+          assert type(data.get('protocol')) is int and data['protocol'] == 1 and data.get('service') == 'koharu-vision' and data.get('ready') is True and data.get('model_loaded') is True and data.get('ocr_model_loaded') is True, 'Vision not ready'
+      interval: 30s
+      timeout: 8s
+      start_period: 600s
+      retries: 3
+    shm_size: 1gb
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+# RORem :8765 and vLLM :8000 remain in their original projects/processes.

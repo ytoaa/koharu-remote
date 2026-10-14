@@ -1,0 +1,328 @@
+--- a/crates/koharu-pipeline/Cargo.toml
++++ b/crates/koharu-pipeline/Cargo.toml
+@@ -26,6 +26,8 @@
+ koharu-scene = { workspace = true }
+ koharu-translator = { workspace = true }
+ rayon = { workspace = true }
++reqwest = { workspace = true }
++serde_json = { workspace = true }
+ serde = { workspace = true }
+ specta = { workspace = true }
+ strum = { workspace = true }
+--- a/crates/koharu-pipeline/src/lib.rs
++++ b/crates/koharu-pipeline/src/lib.rs
+@@ -11,6 +11,8 @@
+ mod report;
+ mod request;
+ mod resources;
++mod remote;
++pub use remote::{get_custom_models, save_custom_models, check_custom_models};
+ mod scheduler;
+ mod scope;
+ mod stage;
+--- a/crates/koharu-pipeline/src/stages/detection.rs
++++ b/crates/koharu-pipeline/src/stages/detection.rs
+@@ -96,6 +96,7 @@
+ #[async_trait]
+ impl StageProcessor for Processor {
+     fn model(&self) -> &'static str {
++        if crate::remote::enabled("detection") { return "dgx-detection"; }
+         MODEL_NAME
+     }
+
+@@ -135,20 +136,27 @@
+ }
+
+ struct Model {
+-    network: Arc<Mutex<KoharuLayoutRFDetrSeg2XL>>,
++    network: Option<Arc<Mutex<KoharuLayoutRFDetrSeg2XL>>>,
++    remote: Option<crate::remote::Remote>,
+     thresholds: KoharuLayoutThresholds,
+ }
+
+ impl Model {
+     async fn load(device: koharu_ml::Device, config: &DetectionModel) -> Result<Self> {
+         let DetectionModel::KoharuLayoutRFDetrSeg2XL(config) = config;
++        if let Some(remote) = crate::remote::Remote::configured("detection")? {
++            remote.ready().await?;
++            let thresholds = remote.detection_thresholds();
++            return Ok(Self { network: None, remote: Some(remote), thresholds });
++        }
+         let network = KoharuLayoutRFDetrSeg2XL::load(device).await?;
+         let mut thresholds = network.recommended_thresholds();
+         thresholds.text = config.text_threshold.unwrap_or(thresholds.text);
+         thresholds.bubble = config.bubble_threshold.unwrap_or(thresholds.bubble);
+         thresholds.panel = config.panel_threshold.unwrap_or(thresholds.panel);
+         Ok(Self {
+-            network: Arc::new(Mutex::new(network)),
++            network: Some(Arc::new(Mutex::new(network))),
++            remote: None,
+             thresholds,
+         })
+     }
+@@ -165,7 +173,10 @@
+     }
+
+     async fn detect(&self, image: Arc<DynamicImage>) -> Result<KoharuLayoutDetections> {
+-        let network = self.network.clone();
++        if let Some(remote) = &self.remote {
++            return remote.detect(&image, self.thresholds).await;
++        }
++        let network = self.network.as_ref().context("local detector not loaded")?.clone();
+         let thresholds = self.thresholds;
+         tokio_rayon::spawn(move || {
+             let network = network
+--- a/crates/koharu-pipeline/src/stages/ocr.rs
++++ b/crates/koharu-pipeline/src/stages/ocr.rs
+@@ -35,6 +35,7 @@
+ #[async_trait]
+ impl StageProcessor for Processor {
+     fn model(&self) -> &'static str {
++        if crate::remote::enabled("ocr") { return "dgx-ocr"; }
+         match self.config {
+             OcrModel::MangaOcr => "manga-ocr",
+             OcrModel::BaberuOcr => "baberu-ocr",
+@@ -65,6 +66,7 @@
+ }
+
+ enum Model {
++    Remote(crate::remote::Remote),
+     Manga(Arc<Mutex<MangaOcr>>),
+     Baberu(Arc<Mutex<BaberuOcr>>),
+     Hayai(Arc<Mutex<HayaiOcr>>),
+@@ -73,6 +75,9 @@
+
+ impl Model {
+     async fn load(device: koharu_ml::Device, config: &OcrModel) -> Result<Self> {
++        if let Some(remote) = crate::remote::Remote::configured("ocr")? {
++            remote.ready().await?; return Ok(Self::Remote(remote));
++        }
+         match config {
+             OcrModel::MangaOcr => Ok(Self::Manga(Arc::new(Mutex::new(
+                 MangaOcr::load(device).await?,
+@@ -91,6 +96,7 @@
+
+     async fn run(&self, input: StageInput) -> Result<koharu_scene::Patch> {
+         let model_name = match self {
++            Self::Remote(_) => "dgx-ocr",
+             Self::Manga(_) => "manga-ocr",
+             Self::Baberu(_) => "baberu-ocr",
+             Self::Hayai(_) => "hayai-ocr",
+@@ -141,6 +147,15 @@
+         }
+
+         let results = match self {
++            Self::Remote(remote) => {
++                let mut results = Vec::new();
++                for target in targets {
++                    let text = normalize_ocr_text(remote.ocr(&target.image).await?);
++                    results.push(OcrResult { content: target.content, region: target.region,
++                        geometry: target.geometry, previous: target.previous, text });
++                }
++                results
++            },
+             Self::Manga(model) => {
+                 infer_text(model.clone(), targets, |model, image| {
+                     model.inference(image)
+--- a/crates/koharu-pipeline/src/stages/inpainting.rs
++++ b/crates/koharu-pipeline/src/stages/inpainting.rs
+@@ -94,6 +94,7 @@
+ #[async_trait]
+ impl StageProcessor for Processor {
+     fn model(&self) -> &'static str {
++        if crate::remote::enabled("inpainting") { return "dgx-rorem-4s"; }
+         match self.config {
+             InpaintingModel::LaMa {} => "lama",
+             InpaintingModel::AotInpainting {} => "aot-inpainting",
+@@ -142,6 +143,7 @@
+ }
+
+ enum Model {
++    Remote(crate::remote::Remote),
+     LaMa(Arc<Mutex<LaMa>>),
+     Aot(Arc<Mutex<AotInpainting>>),
+     Flux {
+@@ -156,6 +158,9 @@
+
+ impl Model {
+     async fn load(device: koharu_ml::Device, config: &InpaintingModel) -> Result<Self> {
++        if let Some(remote) = crate::remote::Remote::configured("inpainting")? {
++            remote.ready().await?; return Ok(Self::Remote(remote));
++        }
+         match config {
+             InpaintingModel::LaMa {} => {
+                 Ok(Self::LaMa(Arc::new(Mutex::new(LaMa::load(device).await?))))
+@@ -184,6 +189,7 @@
+         let cleanup = prepared.cleanup.take();
+         let cleanup_entity = prepared.cleanup_entity;
+         let (model_name, image) = match self {
++            Self::Remote(remote) => ("dgx-rorem-4s", inpaint_remote(prepared, remote).await?),
+             Self::LaMa(model) => {
+                 let model = model.clone();
+                 (
+@@ -425,6 +431,27 @@
+     mask: GrayImage,
+     text_mask: GrayImage,
+     flat_fill_regions: Vec<FlatFillRegion>,
++}
++
++async fn inpaint_remote(prepared: InpaintInput, remote: &crate::remote::Remote) -> Result<DynamicImage> {
++    if !remote.inpainting_tiled() {
++        return remote.inpaint(&prepared.image, &prepared.mask).await;
++    }
++    let (mut output, pending_mask, labels, tiles) = tokio_rayon::spawn(move || -> Result<_> {
++        let mut output = prepared.image.to_rgb8();
++        let mut pending = prepared.mask.clone();
++        fill_uniform_regions(&mut output, &mut pending, &prepared.text_mask, &prepared.flat_fill_regions);
++        let (labels, tiles) = inpaint_tiles(&pending);
++        Ok((output, pending, labels, tiles))
++    }).await?;
++    for tile in &tiles {
++        let [left, top, right, bottom] = tile.crop;
++        let crop = image::imageops::crop_imm(&output, left, top, right - left, bottom - top).to_image();
++        let mask = crop_tile_mask(&pending_mask, tile);
++        let generated = remote.inpaint(&DynamicImage::ImageRgb8(crop), &mask).await?.to_rgb8();
++        composite_generated(&mut output, &labels, tile, &generated);
++    }
++    Ok(DynamicImage::ImageRgb8(output))
+ }
+
+ async fn prepare(input: &StageInput) -> Result<InpaintInput> {
+@@ -1029,6 +1056,54 @@
+         }
+     }
+
++    #[tokio::test]
++    async fn remote_inpainting_uses_bounded_regions_and_preserves_unmasked_pixels() {
++        use tokio::io::{AsyncReadExt, AsyncWriteExt};
++        let source = Arc::new(DynamicImage::ImageRgb8(RgbImage::from_pixel(900, 900, Rgb([20, 40, 60]))));
++        let mut mask = GrayImage::new(900, 900);
++        mask.put_pixel(10, 10, Luma([255]));
++        mask.put_pixel(850, 850, Luma([255]));
++        let (_, tiles) = inpaint_tiles(&mask);
++        assert_eq!(tiles.len(), 2);
++        let sizes = tiles.iter().map(|t| (t.crop[2] - t.crop[0], t.crop[3] - t.crop[1])).collect::<Vec<_>>();
++        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
++        let remote = crate::remote::Remote::test_client(&format!("http://{}/", listener.local_addr().unwrap())).unwrap();
++        let server = tokio::spawn(async move {
++            for (width, height) in sizes {
++                assert!(width <= TILE_SIZE + 2 * TILE_CONTEXT && height <= TILE_SIZE + 2 * TILE_CONTEXT);
++                let (mut stream, _) = listener.accept().await.unwrap();
++                let mut request = Vec::new();
++                let mut chunk = [0u8; 8192];
++                loop {
++                    let n = stream.read(&mut chunk).await.unwrap();
++                    assert!(n > 0);
++                    request.extend_from_slice(&chunk[..n]);
++                    if let Some(header_end) = request.windows(4).position(|v| v == b"\r\n\r\n") {
++                        let headers = String::from_utf8_lossy(&request[..header_end]).to_lowercase();
++                        let size: usize = headers.lines().find_map(|line| line.strip_prefix("content-length:")).unwrap().trim().parse().unwrap();
++                        if request.len() >= header_end + 4 + size { break; }
++                    }
++                }
++                assert!(String::from_utf8_lossy(&request).contains("name=\"options\""));
++                let image = DynamicImage::ImageRgb8(RgbImage::from_pixel(width, height, Rgb([1, 2, 3])));
++                let mut png = Cursor::new(Vec::new());
++                image.write_to(&mut png, ImageFormat::Png).unwrap();
++                let bytes = png.into_inner();
++                stream.write_all(format!("HTTP/1.1 200 OK\r\nContent-Type: image/png\r\nContent-Length: {}\r\nConnection: close\r\n\r\n", bytes.len()).as_bytes()).await.unwrap();
++                stream.write_all(&bytes).await.unwrap();
++            }
++        });
++        let prepared = InpaintInput { image: source.clone(), original: source,
++            cleanup_entity: None, cleanup: None, mask: mask.clone(), text_mask: mask,
++            flat_fill_regions: Vec::new() };
++        let output = inpaint_remote(prepared, &remote).await.unwrap().to_rgb8();
++        assert_eq!(output.dimensions(), (900, 900));
++        assert_eq!(output.get_pixel(10, 10), &Rgb([1, 2, 3]));
++        assert_eq!(output.get_pixel(850, 850), &Rgb([1, 2, 3]));
++        assert_eq!(output.get_pixel(500, 500), &Rgb([20, 40, 60]));
++        server.await.unwrap();
++    }
++
+     #[test]
+     fn uniform_mask_background_is_filled_without_inference() {
+         let mut image = RgbImage::from_pixel(96, 96, Rgb([240, 241, 242]));
+--- a/crates/koharu-pipeline/src/pipeline.rs
++++ b/crates/koharu-pipeline/src/pipeline.rs
+@@ -67,6 +67,11 @@
+         })
+     }
+
++    /// Called under the app's processing admission lock, between jobs only.
++    pub fn invalidate_custom_models(&self) {
++        self.current.load_full().invalidate_custom_models();
++    }
++
+     pub fn subscribe_resources(&self) -> tokio::sync::watch::Receiver<ResourceSnapshot> {
+         self.resources.start();
+         self.resources.subscribe()
+--- a/crates/koharu-pipeline/src/stage_runner.rs
++++ b/crates/koharu-pipeline/src/stage_runner.rs
+@@ -30,6 +30,12 @@
+             stages: Stages::new(config, translator, device)?,
+             accelerator: AcceleratorGate::new(device, resources),
+         })
++    }
++
++    pub(crate) fn invalidate_custom_models(&self) {
++        for stage in [Stage::Detection, Stage::Ocr, Stage::Inpainting] {
++            self.stages.unload(stage);
++        }
+     }
+
+     #[tracing::instrument(skip_all)]
+--- a/crates/koharu-app/src/commands/mod.rs
++++ b/crates/koharu-app/src/commands/mod.rs
+@@ -1,5 +1,6 @@
+ pub(crate) mod agent;
+ pub(crate) mod canvas;
++pub(crate) mod custom;
+ pub(crate) mod editing;
+ pub(crate) mod fonts;
+ pub(crate) mod import;
+@@ -94,6 +95,9 @@
+             fonts::get_font_preview,
+             preferences::save_preferences,
+             preferences::get_preferences,
++            custom::get_custom_models,
++            custom::save_custom_models,
++            custom::check_custom_models,
+             preferences::get_translation_models,
+             canvas::get_canvas_manifest,
+             canvas::get_canvas_resource,
+--- a/packages/koharu/components/preferences/SettingsPage.tsx
++++ b/packages/koharu/components/preferences/SettingsPage.tsx
+@@ -16,6 +16,7 @@
+ import { useCallback, useEffect, useRef, useState } from 'react'
+ import { useTranslation } from 'react-i18next'
+
++import { CustomPreferences } from '@/components/preferences/CustomPreferences'
+ import { PipelinePreferences } from '@/components/preferences/PipelinePreferences'
+ import {
+   PreferencePage,
+@@ -48,6 +49,7 @@
+ const tabs = [
+   ['appearance', Palette],
+   ['pipeline', Cpu],
++  ['custom', Cpu],
+   ['providers', KeyRound],
+   ['translation', Languages],
+   ['typesetting', Type],
+@@ -186,7 +188,7 @@
+               className='h-10 w-full justify-start gap-3 rounded-lg px-3 text-left text-[12px] text-muted-foreground hover:bg-foreground/[0.06] hover:text-foreground data-[active=true]:bg-accent data-[active=true]:text-accent-foreground'
+               onClick={() => setTab(id)}
+             >
+-              <Icon className='size-4' /> {t(`settings.tabs.${id}`)}
++              <Icon className='size-4' /> {id === 'custom' ? 'Custom' : t(`settings.tabs.${id}`)}
+             </Button>
+           ))}
+         </div>
+@@ -197,6 +199,7 @@
+         </header>
+         <ScrollArea className='min-h-0 flex-1'>
+           <div className='mx-auto w-full max-w-4xl px-10 py-10'>
++            {tab === 'custom' && <CustomPreferences onOpenTab={setTab} />}
+             {tab === 'appearance' && <AppearancePreferences />}
+             {tab === 'pipeline' &&
+               (pipeline ? (
