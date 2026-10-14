@@ -1,0 +1,697 @@
+{
+  "KoharuInput": {
+    "display_name": "Koharu 입력",
+    "description": "Koharu의 이미지·마스크 요청을 그대로 전달합니다. 수동 테스트에는 기본 이미지 로드 노드를 연결하세요. 크기나 마스크 형태를 자동 변경하지 않습니다.",
+    "inputs": {
+      "request_id": {
+        "name": "요청 ID (자동)",
+        "tooltip": "Koharu 요청에서 자동으로 채워집니다. 수동 실행할 때는 비워 두세요."
+      },
+      "image": {
+        "name": "원본 이미지",
+        "tooltip": "수동 테스트용 원본입니다. Koharu 요청에서는 전달된 이미지가 사용됩니다."
+      },
+      "mask": {
+        "name": "마스크",
+        "tooltip": "흰색은 처리 영역, 검정색은 보존 영역입니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "원본 이미지",
+        "tooltip": "전달된 RGB 원본입니다."
+      },
+      "1": {
+        "name": "입력 마스크",
+        "tooltip": "흰색 처리 영역·검정색 보존 영역입니다."
+      },
+      "2": {
+        "name": "요청 ID",
+        "tooltip": "API 결과를 원래 요청에 연결하는 ID입니다."
+      }
+    }
+  },
+  "KoharuInpaintOutput": {
+    "display_name": "Koharu 인페인트 출력",
+    "description": "워크플로우에서 합성한 최종 이미지를 Koharu에 RGB PNG로 전달합니다. 이 노드 자체는 확대·합성·마스크 확장을 하지 않습니다.",
+    "inputs": {
+      "request_id": {
+        "name": "요청 ID (자동)",
+        "tooltip": "Koharu 요청에서 자동으로 채워집니다. 수동 실행할 때는 비워 두세요."
+      },
+      "images": {
+        "name": "이미지",
+        "tooltip": "처리할 이미지입니다. 크기 변경은 별도의 기본 이미지 노드에서 조절하세요."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "최종 이미지",
+        "tooltip": "Koharu에 전달되는 최종 이미지입니다."
+      }
+    }
+  },
+  "KoharuMaskFillHoles": {
+    "display_name": "Koharu 마스크 구멍 채우기",
+    "description": "흰색 마스크에 완전히 둘러싸인 작은 검정 구멍을 채웁니다. 마스크 확장·축소는 기본 GrowMask에서 조절하세요.",
+    "inputs": {
+      "mask": {
+        "name": "마스크",
+        "tooltip": "흰색은 처리 영역, 검정색은 보존 영역입니다."
+      },
+      "enabled": {
+        "name": "사용",
+        "tooltip": "끄면 해당 보정을 적용하지 않고 입력을 그대로 전달합니다."
+      },
+      "max_hole_area": {
+        "name": "최대 구멍 면적 (px)",
+        "tooltip": "완전히 둘러싸인 작은 검정 구멍만 채웁니다. 이미지 가장자리와 연결된 검정 영역은 유지합니다. 0이면 채우지 않습니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "채운 마스크",
+        "tooltip": "설정한 작은 구멍을 채운 마스크입니다."
+      }
+    }
+  },
+  "KoharuDetector": {
+    "display_name": "Koharu RF-DETR 영역 감지",
+    "description": "RF-DETR로 본문·효과음·말풍선·패널을 감지합니다. 각 값은 confidence 기준이며 Koharu의 고정 IoU 중복 제거 기준과 별개입니다.",
+    "inputs": {
+      "images": {
+        "name": "이미지",
+        "tooltip": "처리할 이미지입니다. 크기 변경은 별도의 기본 이미지 노드에서 조절하세요."
+      },
+      "request_id": {
+        "name": "요청 ID (자동)",
+        "tooltip": "Koharu 요청에서 자동으로 채워집니다. 수동 실행할 때는 비워 두세요."
+      },
+      "model": {
+        "name": "모델",
+        "tooltip": "해당 모델 로더의 출력을 연결하세요."
+      },
+      "text": {
+        "name": "본문 감지 기준",
+        "tooltip": "본문으로 판단하는 confidence 기준입니다. 낮추면 후보가 늘지만 오탐도 늘 수 있습니다."
+      },
+      "onomatopoeia": {
+        "name": "효과음 감지 기준",
+        "tooltip": "효과음으로 판단하는 confidence 기준입니다. 음악 기호나 그림처럼 그린 글자는 놓칠 수 있습니다."
+      },
+      "bubble": {
+        "name": "말풍선 감지 기준",
+        "tooltip": "말풍선으로 판단하는 confidence 기준입니다."
+      },
+      "panel": {
+        "name": "패널 감지 기준",
+        "tooltip": "만화 컷으로 판단하는 confidence 기준입니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "감지 결과",
+        "tooltip": "영역별 분류·좌표·마스크를 포함한 결과입니다."
+      }
+    }
+  },
+  "KoharuOCR": {
+    "display_name": "Koharu OCR",
+    "description": "Hayai로 이미지의 글자를 읽습니다. 반복 루프와 잘린 출력은 거부하며, 반복 오류에만 한 번 재시도할 수 있습니다.",
+    "inputs": {
+      "images": {
+        "name": "이미지",
+        "tooltip": "처리할 이미지입니다. 크기 변경은 별도의 기본 이미지 노드에서 조절하세요."
+      },
+      "request_id": {
+        "name": "요청 ID (자동)",
+        "tooltip": "Koharu 요청에서 자동으로 채워집니다. 수동 실행할 때는 비워 두세요."
+      },
+      "model": {
+        "name": "모델",
+        "tooltip": "해당 모델 로더의 출력을 연결하세요."
+      },
+      "max_new_tokens": {
+        "name": "최대 출력 토큰",
+        "tooltip": "OCR 한 번의 최대 출력 길이입니다. 이미지 해상도와는 별개입니다. 반복 출력은 별도 검증에서 거부됩니다."
+      },
+      "repetition_penalty": {
+        "name": "반복 억제 강도",
+        "tooltip": "1.0은 기본값입니다. 올리면 반복을 억제하지만 실제 반복 글자도 영향을 받을 수 있습니다."
+      },
+      "num_beams": {
+        "name": "Beam 수",
+        "tooltip": "후보 문장을 탐색하는 수입니다. 늘리면 시간과 메모리 사용이 증가할 수 있습니다."
+      },
+      "length_penalty": {
+        "name": "길이 보정",
+        "tooltip": "Beam search의 출력 길이 선호를 조절합니다."
+      },
+      "early_stopping": {
+        "name": "조기 종료",
+        "tooltip": "Beam search에서 완료된 후보가 충분하면 종료합니다."
+      },
+      "max_patches": {
+        "name": "이미지 patch 예산",
+        "tooltip": "NaFlex 이미지 patch 수입니다. 늘리면 작은 글자 해상도가 높아질 수 있지만 연산량도 증가합니다."
+      },
+      "retry_on_repetition": {
+        "name": "반복 오류 시 재시도",
+        "tooltip": "반복 루프 오류일 때만 강화한 반복 억제값으로 한 번 재시도합니다. 토큰 한도 오류는 자동 재시도하지 않습니다."
+      },
+      "retry_repetition_penalty": {
+        "name": "재시도 반복 억제 강도",
+        "tooltip": "첫 실행보다 큰 값일 때 한 번 재시도합니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "인식한 글자",
+        "tooltip": "OCR이 읽은 글자입니다."
+      },
+      "1": {
+        "name": "결과 정보",
+        "tooltip": "모델과 재시도 등의 정보입니다."
+      }
+    }
+  },
+  "KoharuDetectionOutput": {
+    "display_name": "Koharu 감지 출력",
+    "description": "최종 감지 결과를 Koharu에 전달합니다. 클라이언트 중복 제거로 유실될 수 있는 글자 픽셀을 진단 로그에 표시합니다.",
+    "inputs": {
+      "request_id": {
+        "name": "요청 ID (자동)",
+        "tooltip": "Koharu 요청에서 자동으로 채워집니다. 수동 실행할 때는 비워 두세요."
+      },
+      "result": {
+        "name": "감지 결과",
+        "tooltip": "분류·점수·좌표·영역별 마스크를 포함한 감지 결과입니다."
+      }
+    },
+    "outputs": {}
+  },
+  "KoharuOCROutput": {
+    "display_name": "Koharu OCR 출력",
+    "description": "인식 결과를 Koharu에 전달합니다. 글자 내용은 번역하거나 변경하지 않습니다.",
+    "inputs": {
+      "request_id": {
+        "name": "요청 ID (자동)",
+        "tooltip": "Koharu 요청에서 자동으로 채워집니다. 수동 실행할 때는 비워 두세요."
+      },
+      "text": {
+        "name": "인식한 글자",
+        "tooltip": "Koharu에 전달할 OCR 문자열을 연결합니다."
+      },
+      "model_id": {
+        "name": "모델 ID",
+        "tooltip": "OCR 결과에 기록할 모델 식별자입니다."
+      },
+      "revision": {
+        "name": "모델 버전",
+        "tooltip": "OCR 결과에 기록할 모델 revision입니다."
+      },
+      "metadata": {
+        "name": "결과 정보",
+        "tooltip": "모델·버전·줄 분할·재시도 정보를 포함한 결과입니다."
+      }
+    },
+    "outputs": {}
+  },
+  "KoharuDetectionMasks": {
+    "display_name": "Koharu 영역 마스크 추출",
+    "description": "선택한 감지 분류의 영역별 마스크와 원래 좌표를 추출합니다. 기본 마스크 노드로 보정한 뒤 마스크 적용 노드에 연결하세요.",
+    "inputs": {
+      "result": {
+        "name": "감지 결과",
+        "tooltip": "분류·점수·좌표·영역별 마스크를 포함한 감지 결과입니다."
+      },
+      "labels": {
+        "name": "대상 분류",
+        "tooltip": "이 노드가 처리할 분류를 선택합니다. 다른 분류는 유지합니다.",
+        "options": {
+          "text": "본문",
+          "text + onomatopoeia": "본문 + 효과음",
+          "onomatopoeia": "효과음",
+          "bubble": "말풍선",
+          "panel": "패널",
+          "all": "전체"
+        }
+      },
+      "padding": {
+        "name": "주변 여백 (px)",
+        "tooltip": "주변 문맥 또는 마스크 확장을 위한 여백입니다. 이 값 자체가 마스크를 팽창시키지는 않습니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "영역별 마스크",
+        "tooltip": "순서가 있는 지역 마스크 목록입니다."
+      },
+      "1": {
+        "name": "원래 좌표·순서",
+        "tooltip": "보정한 마스크를 원래 페이지에 되돌릴 정보입니다."
+      }
+    }
+  },
+  "KoharuDetectionMasksApply": {
+    "display_name": "Koharu 영역 마스크 적용",
+    "description": "보정한 지역 마스크를 원래 페이지 좌표에 다시 넣습니다. 마스크 크기와 목록 순서를 유지해야 합니다.",
+    "inputs": {
+      "masks": {
+        "name": "영역별 마스크",
+        "tooltip": "원래 순서와 크기를 유지한 영역별 마스크 목록입니다."
+      },
+      "context": {
+        "name": "원래 좌표·순서",
+        "tooltip": "마스크 추출 노드의 좌표 정보를 연결합니다. 목록을 임의로 재정렬하지 마세요."
+      },
+      "threshold": {
+        "name": "기준값",
+        "tooltip": "이 값보다 큰 마스크 값을 흰색으로 처리합니다."
+      },
+      "expand_bbox": {
+        "name": "OCR 박스 확장",
+        "tooltip": "마스크가 기존 박스 밖으로 넓어졌을 때 OCR 박스도 확장합니다. 끄면 추가된 글자가 OCR 범위에서 빠질 수 있습니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "감지 결과",
+        "tooltip": "영역별 분류·좌표·마스크를 포함한 결과입니다."
+      }
+    }
+  },
+  "KoharuOCRLineCrops": {
+    "display_name": "Koharu OCR 줄 분할",
+    "description": "여러 줄을 보수적으로 나눕니다. 명확한 줄 간격이 없으면 원본을 유지하며, 줄 합치기 노드에서 읽기 순서를 복원합니다.",
+    "inputs": {
+      "images": {
+        "name": "이미지",
+        "tooltip": "처리할 이미지입니다. 크기 변경은 별도의 기본 이미지 노드에서 조절하세요."
+      },
+      "enabled": {
+        "name": "사용",
+        "tooltip": "끄면 해당 보정을 적용하지 않고 입력을 그대로 전달합니다."
+      },
+      "direction": {
+        "name": "읽기 방향",
+        "tooltip": "가로줄·세로열 분할과 읽기 순서를 선택합니다. 자동은 명확한 줄 간격이 없으면 원본을 유지합니다.",
+        "options": {
+          "auto": "자동",
+          "horizontal": "가로줄",
+          "vertical_rtl": "세로쓰기 · 오른쪽부터",
+          "vertical_ltr": "세로쓰기 · 왼쪽부터"
+        }
+      },
+      "polarity": {
+        "name": "글자 밝기",
+        "tooltip": "배경보다 밝은 글자·어두운 글자·둘 다 중에서 줄 분할에 사용할 대상을 선택합니다.",
+        "options": {
+          "auto": "자동",
+          "bright": "밝은 글자",
+          "dark": "어두운 글자",
+          "both": "밝고 어두운 글자 모두"
+        }
+      },
+      "background_window": {
+        "name": "배경 추정 범위 (px)",
+        "tooltip": "지역 배경을 추정할 범위입니다. 글자 크기에 맞게 조절하세요."
+      },
+      "contrast": {
+        "name": "글자 대비 기준",
+        "tooltip": "지역 배경과의 밝기 차이가 이 값 이상인 픽셀을 글자 후보로 사용합니다."
+      },
+      "ink_fraction": {
+        "name": "줄 감지 최소 비율",
+        "tooltip": "행·열에서 글자 후보가 차지해야 하는 최소 비율입니다."
+      },
+      "min_gap": {
+        "name": "최소 줄 간격 (px)",
+        "tooltip": "이보다 가까운 글자 띠는 같은 줄로 묶습니다."
+      },
+      "min_line_extent": {
+        "name": "최소 줄 두께 (px)",
+        "tooltip": "이보다 얇은 띠는 독립된 줄로 판단하지 않습니다."
+      },
+      "padding": {
+        "name": "주변 여백 (px)",
+        "tooltip": "주변 문맥 또는 마스크 확장을 위한 여백입니다. 이 값 자체가 마스크를 팽창시키지는 않습니다."
+      },
+      "max_lines": {
+        "name": "최대 줄 수",
+        "tooltip": "분할 가능한 줄 수입니다. 초과하면 무리하게 자르지 않고 원본을 유지합니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "줄 이미지 목록",
+        "tooltip": "분할한 줄의 이미지 목록입니다."
+      },
+      "1": {
+        "name": "줄 배치·읽기 순서",
+        "tooltip": "결과를 원래 순서로 합칠 정보입니다."
+      }
+    }
+  },
+  "KoharuOCRJoin": {
+    "display_name": "Koharu OCR 줄 합치기",
+    "description": "줄별 OCR 결과를 원래 읽기 순서로 합칩니다. 줄 하나가 실패해도 불완전한 결과를 성공으로 보내지 않습니다.",
+    "inputs": {
+      "text": {
+        "name": "줄별 인식 글자",
+        "tooltip": "줄 이미지별 OCR 문자열 목록입니다."
+      },
+      "metadata": {
+        "name": "결과 정보",
+        "tooltip": "모델·버전·줄 분할·재시도 정보를 포함한 결과입니다."
+      },
+      "layout": {
+        "name": "줄 배치·읽기 순서",
+        "tooltip": "줄 분할 노드의 배치 정보를 연결합니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "인식한 글자",
+        "tooltip": "읽기 순서대로 합친 OCR 글자입니다."
+      },
+      "1": {
+        "name": "결과 정보",
+        "tooltip": "줄 배치와 모델·재시도 정보입니다."
+      }
+    }
+  },
+  "KoharuDetectorModelLoader": {
+    "display_name": "Koharu 감지 모델 로더",
+    "description": "models/koharu/detection의 RF-DETR 모델을 선택합니다. 모델 준비는 ComfyUI 실행 큐에서 수행합니다.",
+    "inputs": {
+      "model_name": {
+        "name": "모델 선택",
+        "tooltip": "ComfyUI models/koharu 아래의 모델 폴더를 선택합니다. 파일·폴더 이름은 그대로 표시합니다.",
+        "options": {
+          "(no models found)": "모델 없음"
+        }
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "모델",
+        "tooltip": "해당 처리 노드에 연결할 모델입니다."
+      }
+    }
+  },
+  "KoharuOCRModelLoader": {
+    "display_name": "Koharu OCR 모델 로더",
+    "description": "models/koharu/ocr의 Hayai 모델을 선택합니다. 모델 준비는 ComfyUI 실행 큐에서 수행합니다.",
+    "inputs": {
+      "model_name": {
+        "name": "모델 선택",
+        "tooltip": "ComfyUI models/koharu 아래의 모델 폴더를 선택합니다. 파일·폴더 이름은 그대로 표시합니다.",
+        "options": {
+          "(no models found)": "모델 없음"
+        }
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "모델",
+        "tooltip": "해당 처리 노드에 연결할 모델입니다."
+      }
+    }
+  },
+  "KoharuTextMaskModelLoader": {
+    "display_name": "Koharu SAM 마스크 모델 로더",
+    "description": "models/koharu/text_masks의 SAM-TS-L 모델과 연산 정밀도를 선택합니다. 모델 준비는 ComfyUI 실행 큐에서 수행합니다.",
+    "inputs": {
+      "model_name": {
+        "name": "모델 선택",
+        "tooltip": "ComfyUI models/koharu 아래의 모델 폴더를 선택합니다. 파일·폴더 이름은 그대로 표시합니다.",
+        "options": {
+          "(no models found)": "모델 없음"
+        }
+      },
+      "precision": {
+        "name": "연산 정밀도",
+        "tooltip": "bf16은 FP32 가중치를 유지하며 연산에 BF16 autocast를 사용합니다. 호환성 문제가 있으면 fp32로 비교하세요."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "모델",
+        "tooltip": "해당 처리 노드에 연결할 모델입니다."
+      }
+    }
+  },
+  "KoharuLocalColorMatch": {
+    "display_name": "Koharu 주변 색상·밝기 보정",
+    "description": "글자 영역을 제외한 주변 배경을 비교해 생성 이미지의 색상·밝기 차이를 줄입니다. 그림 복원이나 누락 마스크 보정 기능은 아닙니다.",
+    "inputs": {
+      "target": {
+        "name": "생성 이미지",
+        "tooltip": "원본과 크기가 맞춰진 생성 결과입니다."
+      },
+      "reference": {
+        "name": "기준 원본",
+        "tooltip": "주변 배경의 색과 밝기를 비교할 원본입니다."
+      },
+      "exclude_mask": {
+        "name": "색상 비교 제외 영역",
+        "tooltip": "글자가 있던 영역을 흰색으로 제외합니다. 합성 범위를 정하는 마스크와 별개입니다."
+      },
+      "strength": {
+        "name": "보정 강도",
+        "tooltip": "0은 보정하지 않음, 1은 설정한 보정량을 모두 적용합니다."
+      },
+      "radius": {
+        "name": "색상 비교 반경 (px)",
+        "tooltip": "주변에서 배경색과 밝기를 비교할 반경입니다."
+      },
+      "max_shift": {
+        "name": "최대 보정량",
+        "tooltip": "색상·밝기 차이 보정의 상한입니다. 0~1 범위에서 지정합니다."
+      },
+      "sample_tolerance": {
+        "name": "배경 표본 허용 차이",
+        "tooltip": "생성 결과와 원본의 차이가 너무 큰 표본은 제외합니다. 새 그림이나 남은 글자가 비교에 섞이는 것을 줄입니다."
+      },
+      "mode": {
+        "name": "처리 방식",
+        "tooltip": "이 노드에서 사용할 처리 방식을 선택합니다.",
+        "options": {
+          "luminance": "밝기만 (luminance)",
+          "rgb": "RGB 색상"
+        }
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "보정 이미지",
+        "tooltip": "주변 색상과 밝기를 맞춘 생성 이미지입니다."
+      }
+    }
+  },
+  "KoharuTextMask": {
+    "display_name": "Koharu SAM 글자 픽셀 마스크",
+    "description": "SAM-TS-L로 글자 픽셀을 추출합니다. 전체 페이지는 긴 변 1024 기준, 타일은 작은 글자를 더 큰 비율로 볼 수 있지만 실행 횟수가 늘어납니다.",
+    "inputs": {
+      "images": {
+        "name": "이미지",
+        "tooltip": "처리할 이미지입니다. 크기 변경은 별도의 기본 이미지 노드에서 조절하세요."
+      },
+      "model": {
+        "name": "모델",
+        "tooltip": "해당 모델 로더의 출력을 연결하세요."
+      },
+      "mode": {
+        "name": "처리 방식",
+        "tooltip": "이 노드에서 사용할 처리 방식을 선택합니다.",
+        "options": {
+          "full_page": "전체 페이지",
+          "tiles": "겹치는 타일"
+        }
+      },
+      "threshold": {
+        "name": "마스크 기준값 (logit)",
+        "tooltip": "기본 0입니다. 낮추면 더 많은 픽셀을 포함하지만 그림 오탐도 늘 수 있습니다. confidence 기준과는 다릅니다."
+      },
+      "tile_size": {
+        "name": "타일 크기 (px)",
+        "tooltip": "타일 모드에서 원본을 자르는 크기입니다. 전체 페이지 모드에는 적용되지 않습니다."
+      },
+      "overlap": {
+        "name": "타일 겹침 (px)",
+        "tooltip": "타일 경계의 겹침 폭입니다. 타일 크기의 절반보다 작아야 합니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "글자 마스크",
+        "tooltip": "원본 페이지 좌표의 글자 픽셀 마스크입니다."
+      }
+    }
+  },
+  "KoharuTextMaskApply": {
+    "display_name": "Koharu SAM 마스크 적용",
+    "description": "선택한 감지 영역 안의 글자 픽셀을 SAM 마스크로 보정합니다. 놓친 영역 추가는 선택 사항이며, 끄면 박스 밖의 SAM 픽셀은 전달하지 않습니다.",
+    "inputs": {
+      "result": {
+        "name": "감지 결과",
+        "tooltip": "분류·점수·좌표·영역별 마스크를 포함한 감지 결과입니다."
+      },
+      "mask": {
+        "name": "마스크",
+        "tooltip": "흰색은 처리 영역, 검정색은 보존 영역입니다."
+      },
+      "enabled": {
+        "name": "사용",
+        "tooltip": "끄면 해당 보정을 적용하지 않고 입력을 그대로 전달합니다."
+      },
+      "mode": {
+        "name": "처리 방식",
+        "tooltip": "이 노드에서 사용할 처리 방식을 선택합니다.",
+        "options": {
+          "replace": "SAM으로 교체 (replace)",
+          "union": "기존 + SAM (union)"
+        }
+      },
+      "labels": {
+        "name": "대상 분류",
+        "tooltip": "이 노드가 처리할 분류를 선택합니다. 다른 분류는 유지합니다.",
+        "options": {
+          "text": "본문",
+          "text + onomatopoeia": "본문 + 효과음",
+          "onomatopoeia": "효과음"
+        }
+      },
+      "region_padding": {
+        "name": "영역 주변 여백 (px)",
+        "tooltip": "감지 박스와 기존 마스크 주변에서 SAM 픽셀을 가져올 여백입니다. 마스크 팽창값과는 다릅니다."
+      },
+      "empty_fallback": {
+        "name": "SAM 누락 시 기존 마스크 유지",
+        "tooltip": "해당 영역에서 SAM이 픽셀을 하나도 찾지 못하면 기존 RF-DETR 마스크를 유지합니다."
+      },
+      "recover_missed": {
+        "name": "놓친 글자 영역 추가",
+        "tooltip": "감지된 영역 밖의 SAM 픽셀을 새로운 본문 영역으로 추가합니다. 그림 오탐이나 어색한 문장 묶음이 생길 수 있습니다."
+      },
+      "grouping_radius": {
+        "name": "새 영역 묶음 반경 (px)",
+        "tooltip": "추가할 글자 픽셀을 가까운 그룹으로 묶는 반경입니다. 크게 하면 서로 다른 문장이 합쳐질 수 있습니다."
+      },
+      "min_component_area": {
+        "name": "새 영역 최소 면적 (px)",
+        "tooltip": "이보다 작은 글자 픽셀 그룹은 추가하지 않습니다."
+      },
+      "max_new_regions": {
+        "name": "추가 영역 최대 수",
+        "tooltip": "새 본문 영역의 최대 수입니다. 전체 영역 수는 기존 클라이언트의 160개 제한을 따릅니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "감지 결과",
+        "tooltip": "영역별 분류·좌표·마스크를 포함한 결과입니다."
+      }
+    }
+  },
+  "KoharuDetectionMaskPage": {
+    "display_name": "Koharu 페이지 마스크 미리보기",
+    "description": "감지 결과의 영역별 마스크를 한 장으로 합칩니다. 대상 분류와 중복 제거 옵션은 미리보기에만 영향을 주며 실제 감지 응답을 바꾸지 않습니다.",
+    "inputs": {
+      "result": {
+        "name": "감지 결과",
+        "tooltip": "분류·점수·좌표·영역별 마스크를 포함한 감지 결과입니다."
+      },
+      "labels": {
+        "name": "대상 분류",
+        "tooltip": "미리보기에 표시할 분류입니다. 실제 Koharu 전달 결과의 분류를 바꾸지 않습니다.",
+        "options": {
+          "text": "본문",
+          "text + onomatopoeia": "본문 + 효과음",
+          "onomatopoeia": "효과음"
+        }
+      },
+      "client_nms": {
+        "name": "Koharu 중복 제거 후 미리보기",
+        "tooltip": "IoU 0.5 중복 제거 후의 마스크를 미리봅니다. 실제 전달 결과는 바꾸지 않으며, 클라이언트 팽창·틈 메우기·타일 처리는 재현하지 않습니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "페이지 마스크",
+        "tooltip": "선택한 분류의 페이지 전체 마스크입니다."
+      }
+    }
+  },
+  "KoharuDetectionMergeOverlaps": {
+    "display_name": "Koharu 겹친 영역 병합 · 마스크 보존",
+    "description": "Koharu의 고정 IoU 0.5 중복 제거 전에 버려질 마스크를 남는 영역에 합칩니다. 픽셀을 새로 만들지 않지만 OCR 영역이 묶일 수 있습니다.",
+    "inputs": {
+      "result": {
+        "name": "감지 결과",
+        "tooltip": "분류·점수·좌표·영역별 마스크를 포함한 감지 결과입니다."
+      },
+      "enabled": {
+        "name": "사용",
+        "tooltip": "끄면 해당 보정을 적용하지 않고 입력을 그대로 전달합니다."
+      },
+      "labels": {
+        "name": "대상 분류",
+        "tooltip": "이 노드가 처리할 분류를 선택합니다. 다른 분류는 유지합니다.",
+        "options": {
+          "text": "본문",
+          "text + onomatopoeia": "본문 + 효과음",
+          "onomatopoeia": "효과음"
+        }
+      },
+      "expand_bbox": {
+        "name": "OCR 박스 확장",
+        "tooltip": "마스크가 기존 박스 밖으로 넓어졌을 때 OCR 박스도 확장합니다. 끄면 추가된 글자가 OCR 범위에서 빠질 수 있습니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "감지 결과",
+        "tooltip": "영역별 분류·좌표·마스크를 포함한 결과입니다."
+      }
+    }
+  },
+  "KoharuDetectionPolicy": {
+    "display_name": "Koharu 처리 대상 선택",
+    "description": "본문·효과음·말풍선·패널 전달 여부를 선택합니다. 효과음을 본문처럼 처리하면 OCR·번역·인페인트에도 포함됩니다. 마스크 병합 노드 앞에 연결하세요.",
+    "inputs": {
+      "result": {
+        "name": "감지 결과",
+        "tooltip": "분류·점수·좌표·영역별 마스크를 포함한 감지 결과입니다."
+      },
+      "include_text": {
+        "name": "본문 포함",
+        "tooltip": "원래 본문으로 감지된 영역을 전달합니다. 효과음의 본문 전환 여부는 별도 옵션입니다."
+      },
+      "effects": {
+        "name": "효과음 처리",
+        "tooltip": "기존 분류 유지: 자동 글자 마스크에서 제외됩니다. 본문처럼 처리: OCR·번역·인페인트 대상이 됩니다. 제외: 감지 응답에서 제거합니다. 효과음만 지우고 OCR·번역에서 제외하는 모드는 현재 클라이언트가 지원하지 않습니다.",
+        "options": {
+          "keep": "기존 분류 유지 · 자동 제거 제외",
+          "as_text": "본문처럼 처리 · OCR/번역/인페인트 포함",
+          "exclude": "감지 결과에서 제외"
+        }
+      },
+      "include_bubbles": {
+        "name": "말풍선 포함",
+        "tooltip": "말풍선 영역을 전달합니다. 끄면 대화 영역 연결과 단색 말풍선 채움에 영향을 줄 수 있습니다."
+      },
+      "include_panels": {
+        "name": "패널 포함",
+        "tooltip": "만화 컷 영역을 전달합니다. 끄면 컷 기준 읽기 순서에 영향을 줄 수 있습니다."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "감지 결과",
+        "tooltip": "영역별 분류·좌표·마스크를 포함한 결과입니다."
+      }
+    }
+  }
+}

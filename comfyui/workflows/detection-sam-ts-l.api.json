@@ -1,0 +1,310 @@
+{
+  "1": {
+    "class_type": "KoharuInput",
+    "inputs": {
+      "request_id": "",
+      "image": [
+        "4",
+        0
+      ],
+      "mask": [
+        "4",
+        1
+      ]
+    }
+  },
+  "2": {
+    "class_type": "KoharuDetector",
+    "inputs": {
+      "images": [
+        "1",
+        0
+      ],
+      "request_id": [
+        "1",
+        2
+      ],
+      "text": 0.25,
+      "onomatopoeia": 0.2,
+      "bubble": 0.5,
+      "panel": 0.5,
+      "model": [
+        "11",
+        0
+      ]
+    }
+  },
+  "3": {
+    "class_type": "KoharuDetectionOutput",
+    "inputs": {
+      "request_id": [
+        "1",
+        2
+      ],
+      "result": [
+        "28",
+        0
+      ]
+    }
+  },
+  "4": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": ""
+    }
+  },
+  "5": {
+    "class_type": "KoharuDetectionMasks",
+    "inputs": {
+      "result": [
+        "14",
+        0
+      ],
+      "labels": "text + onomatopoeia",
+      "padding": 8
+    }
+  },
+  "6": {
+    "class_type": "KoharuMaskFillHoles",
+    "inputs": {
+      "mask": [
+        "5",
+        0
+      ],
+      "enabled": true,
+      "max_hole_area": 4096
+    }
+  },
+  "7": {
+    "class_type": "GrowMask",
+    "inputs": {
+      "mask": [
+        "6",
+        0
+      ],
+      "expand": 0,
+      "tapered_corners": true
+    }
+  },
+  "8": {
+    "class_type": "KoharuDetectionMasksApply",
+    "inputs": {
+      "masks": [
+        "7",
+        0
+      ],
+      "context": [
+        "5",
+        1
+      ],
+      "threshold": 0.5,
+      "expand_bbox": true
+    }
+  },
+  "11": {
+    "class_type": "KoharuDetectorModelLoader",
+    "inputs": {
+      "model_name": "koharu-layout-rfdetr-seg-2xl-1152"
+    }
+  },
+  "12": {
+    "class_type": "KoharuTextMaskModelLoader",
+    "inputs": {
+      "model_name": "koharu-text-sam-ts-l",
+      "precision": "bf16"
+    }
+  },
+  "13": {
+    "class_type": "KoharuTextMask",
+    "inputs": {
+      "images": [
+        "1",
+        0
+      ],
+      "model": [
+        "12",
+        0
+      ],
+      "mode": "full_page",
+      "threshold": 0.0,
+      "tile_size": 1024,
+      "overlap": 128
+    }
+  },
+  "14": {
+    "class_type": "KoharuTextMaskApply",
+    "inputs": {
+      "result": [
+        "2",
+        0
+      ],
+      "mask": [
+        "13",
+        0
+      ],
+      "enabled": true,
+      "mode": "replace",
+      "labels": "text + onomatopoeia",
+      "region_padding": 8,
+      "empty_fallback": true,
+      "recover_missed": false,
+      "grouping_radius": 6,
+      "min_component_area": 8,
+      "max_new_regions": 64
+    }
+  },
+  "15": {
+    "class_type": "KoharuDetectionMaskPage",
+    "inputs": {
+      "result": [
+        "2",
+        0
+      ],
+      "labels": "text + onomatopoeia",
+      "client_nms": false
+    }
+  },
+  "16": {
+    "class_type": "MaskToImage",
+    "inputs": {
+      "mask": [
+        "15",
+        0
+      ]
+    }
+  },
+  "17": {
+    "class_type": "PreviewImage",
+    "inputs": {
+      "images": [
+        "16",
+        0
+      ]
+    }
+  },
+  "18": {
+    "class_type": "MaskToImage",
+    "inputs": {
+      "mask": [
+        "13",
+        0
+      ]
+    }
+  },
+  "19": {
+    "class_type": "PreviewImage",
+    "inputs": {
+      "images": [
+        "18",
+        0
+      ]
+    }
+  },
+  "20": {
+    "class_type": "KoharuDetectionMaskPage",
+    "inputs": {
+      "result": [
+        "28",
+        0
+      ],
+      "labels": "text",
+      "client_nms": false
+    }
+  },
+  "21": {
+    "class_type": "MaskToImage",
+    "inputs": {
+      "mask": [
+        "20",
+        0
+      ]
+    }
+  },
+  "22": {
+    "class_type": "PreviewImage",
+    "inputs": {
+      "images": [
+        "21",
+        0
+      ]
+    }
+  },
+  "23": {
+    "class_type": "EmptyImage",
+    "inputs": {
+      "width": 64,
+      "height": 64,
+      "batch_size": 1,
+      "color": 65280
+    }
+  },
+  "24": {
+    "class_type": "ImageCompositeMasked",
+    "inputs": {
+      "destination": [
+        "1",
+        0
+      ],
+      "source": [
+        "23",
+        0
+      ],
+      "mask": [
+        "20",
+        0
+      ],
+      "x": 0,
+      "y": 0,
+      "resize_source": true
+    }
+  },
+  "25": {
+    "class_type": "ImageBlend",
+    "inputs": {
+      "image1": [
+        "1",
+        0
+      ],
+      "image2": [
+        "24",
+        0
+      ],
+      "blend_factor": 0.35,
+      "blend_mode": "normal"
+    }
+  },
+  "26": {
+    "class_type": "PreviewImage",
+    "inputs": {
+      "images": [
+        "25",
+        0
+      ]
+    }
+  },
+  "28": {
+    "class_type": "KoharuDetectionMergeOverlaps",
+    "inputs": {
+      "result": [
+        "29",
+        0
+      ],
+      "enabled": true,
+      "labels": "text",
+      "expand_bbox": true
+    }
+  },
+  "29": {
+    "class_type": "KoharuDetectionPolicy",
+    "inputs": {
+      "result": [
+        "8",
+        0
+      ],
+      "include_text": true,
+      "effects": "keep",
+      "include_bubbles": true,
+      "include_panels": true
+    }
+  }
+}

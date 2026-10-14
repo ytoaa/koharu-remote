@@ -1,0 +1,1414 @@
+{
+  "id": "9182f338-8357-4129-9b09-f7cae35843c7",
+  "revision": 2,
+  "last_node_id": 29,
+  "last_link_id": 32,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "KoharuInput",
+      "pos": [
+        420,
+        230
+      ],
+      "size": [
+        300,
+        120
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 1,
+          "shape": 7
+        },
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 2,
+          "shape": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            3,
+            13,
+            25,
+            28
+          ]
+        },
+        {
+          "name": "mask",
+          "type": "MASK",
+          "links": null
+        },
+        {
+          "name": "request_id",
+          "type": "STRING",
+          "links": [
+            4,
+            6
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "KoharuInput"
+      },
+      "widgets_values": [
+        ""
+      ],
+      "widgets_values_named": {
+        "request_id": ""
+      }
+    },
+    {
+      "id": 2,
+      "type": "KoharuDetector",
+      "pos": [
+        790,
+        220
+      ],
+      "size": [
+        320,
+        220
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 3
+        },
+        {
+          "name": "model",
+          "type": "KOHARU_DETECTOR_MODEL",
+          "link": 5
+        },
+        {
+          "name": "request_id",
+          "type": "STRING",
+          "link": 4
+        }
+      ],
+      "outputs": [
+        {
+          "name": "KOHARU_RESULT",
+          "type": "KOHARU_RESULT",
+          "links": [
+            15,
+            17
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "KoharuDetector"
+      },
+      "title": "RF-DETR · 영역 감지",
+      "widgets_values": [
+        "",
+        0.25,
+        0.2,
+        0.5,
+        0.5
+      ],
+      "widgets_values_named": {
+        "request_id": "",
+        "text": 0.25,
+        "onomatopoeia": 0.2,
+        "bubble": 0.5,
+        "panel": 0.5
+      }
+    },
+    {
+      "id": 3,
+      "type": "KoharuDetectionOutput",
+      "pos": [
+        3690,
+        220
+      ],
+      "size": [
+        300,
+        120
+      ],
+      "flags": {},
+      "order": 19,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "result",
+          "type": "KOHARU_RESULT",
+          "link": 7
+        },
+        {
+          "name": "request_id",
+          "type": "STRING",
+          "link": 6
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "KoharuDetectionOutput"
+      },
+      "widgets_values": [
+        ""
+      ],
+      "widgets_values_named": {}
+    },
+    {
+      "id": 4,
+      "type": "LoadImage",
+      "pos": [
+        80,
+        230
+      ],
+      "size": [
+        300,
+        120
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            1
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [
+            2
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage",
+        "cnr_id": "comfy-core"
+      },
+      "widgets_values": [
+        "",
+        "image"
+      ],
+      "widgets_values_named": {
+        "image": "",
+        "upload": "image"
+      }
+    },
+    {
+      "id": 5,
+      "type": "KoharuDetectionMasks",
+      "pos": [
+        1580,
+        220
+      ],
+      "size": [
+        300,
+        120
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "result",
+          "type": "KOHARU_RESULT",
+          "link": 8
+        }
+      ],
+      "outputs": [
+        {
+          "name": "masks",
+          "type": "MASK",
+          "links": [
+            9
+          ],
+          "shape": 6
+        },
+        {
+          "name": "context",
+          "type": "KOHARU_MASK_CONTEXT",
+          "links": [
+            12
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "KoharuDetectionMasks"
+      },
+      "widgets_values": [
+        "text + onomatopoeia",
+        8
+      ],
+      "widgets_values_named": {
+        "labels": "text + onomatopoeia",
+        "padding": 8
+      }
+    },
+    {
+      "id": 6,
+      "type": "KoharuMaskFillHoles",
+      "pos": [
+        1920,
+        220
+      ],
+      "size": [
+        300,
+        120
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 9
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [
+            10
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "KoharuMaskFillHoles"
+      },
+      "title": "최종 마스크 · 내부 구멍 채우기",
+      "widgets_values": [
+        true,
+        4096
+      ],
+      "widgets_values_named": {
+        "enabled": true,
+        "max_hole_area": 4096
+      }
+    },
+    {
+      "id": 7,
+      "type": "GrowMask",
+      "pos": [
+        2260,
+        220
+      ],
+      "size": [
+        300,
+        120
+      ],
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 10
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [
+            11
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "GrowMask",
+        "cnr_id": "comfy-core"
+      },
+      "title": "최종 마스크 · 확장",
+      "widgets_values": [
+        0,
+        true
+      ],
+      "widgets_values_named": {
+        "expand": 0,
+        "tapered_corners": true
+      }
+    },
+    {
+      "id": 8,
+      "type": "KoharuDetectionMasksApply",
+      "pos": [
+        2600,
+        220
+      ],
+      "size": [
+        300,
+        120
+      ],
+      "flags": {},
+      "order": 16,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "masks",
+          "type": "MASK",
+          "link": 11
+        },
+        {
+          "name": "context",
+          "type": "KOHARU_MASK_CONTEXT",
+          "link": 12
+        }
+      ],
+      "outputs": [
+        {
+          "name": "KOHARU_RESULT",
+          "type": "KOHARU_RESULT",
+          "links": [
+            32
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "KoharuDetectionMasksApply"
+      },
+      "widgets_values": [
+        0.5,
+        true
+      ],
+      "widgets_values_named": {
+        "threshold": 0.5,
+        "expand_bbox": true
+      }
+    },
+    {
+      "id": 11,
+      "type": "KoharuDetectorModelLoader",
+      "pos": [
+        80,
+        430
+      ],
+      "size": [
+        300,
+        120
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "model",
+          "type": "KOHARU_DETECTOR_MODEL",
+          "links": [
+            5
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "KoharuDetectorModelLoader"
+      },
+      "widgets_values": [
+        "koharu-layout-rfdetr-seg-2xl-1152"
+      ],
+      "widgets_values_named": {
+        "model_name": "koharu-layout-rfdetr-seg-2xl-1152"
+      }
+    },
+    {
+      "id": 12,
+      "type": "KoharuTextMaskModelLoader",
+      "pos": [
+        80,
+        650
+      ],
+      "size": [
+        300,
+        120
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "model",
+          "type": "KOHARU_TEXT_MASK_MODEL",
+          "links": [
+            14
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "KoharuTextMaskModelLoader"
+      },
+      "title": "SAM-TS-L 모델 로더",
+      "widgets_values": [
+        "koharu-text-sam-ts-l",
+        "bf16"
+      ],
+      "widgets_values_named": {
+        "model_name": "koharu-text-sam-ts-l",
+        "precision": "bf16"
+      }
+    },
+    {
+      "id": 13,
+      "type": "KoharuTextMask",
+      "pos": [
+        790,
+        590
+      ],
+      "size": [
+        320,
+        220
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 13
+        },
+        {
+          "name": "model",
+          "type": "KOHARU_TEXT_MASK_MODEL",
+          "link": 14
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [
+            16,
+            20
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "KoharuTextMask"
+      },
+      "title": "SAM · 글자 픽셀 마스크",
+      "widgets_values": [
+        "full_page",
+        0.0,
+        1024,
+        128
+      ],
+      "widgets_values_named": {
+        "mode": "full_page",
+        "threshold": 0.0,
+        "tile_size": 1024,
+        "overlap": 128
+      }
+    },
+    {
+      "id": 14,
+      "type": "KoharuTextMaskApply",
+      "pos": [
+        1190,
+        400
+      ],
+      "size": [
+        340,
+        340
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "result",
+          "type": "KOHARU_RESULT",
+          "link": 15
+        },
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 16
+        }
+      ],
+      "outputs": [
+        {
+          "name": "KOHARU_RESULT",
+          "type": "KOHARU_RESULT",
+          "links": [
+            8
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "KoharuTextMaskApply"
+      },
+      "title": "SAM 마스크 적용 · 켜기/끄기 비교",
+      "widgets_values": [
+        true,
+        "replace",
+        "text + onomatopoeia",
+        8,
+        true,
+        false,
+        6,
+        8,
+        64
+      ],
+      "widgets_values_named": {
+        "enabled": true,
+        "mode": "replace",
+        "labels": "text + onomatopoeia",
+        "region_padding": 8,
+        "empty_fallback": true,
+        "recover_missed": false,
+        "grouping_radius": 6,
+        "min_component_area": 8,
+        "max_new_regions": 64
+      }
+    },
+    {
+      "id": 15,
+      "type": "KoharuDetectionMaskPage",
+      "pos": [
+        420,
+        860
+      ],
+      "size": [
+        300,
+        120
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "result",
+          "type": "KOHARU_RESULT",
+          "link": 17
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [
+            18
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "KoharuDetectionMaskPage"
+      },
+      "widgets_values": [
+        "text + onomatopoeia",
+        false
+      ],
+      "widgets_values_named": {
+        "labels": "text + onomatopoeia",
+        "client_nms": false
+      }
+    },
+    {
+      "id": 16,
+      "type": "MaskToImage",
+      "pos": [
+        420,
+        970
+      ],
+      "size": [
+        300,
+        120
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 18
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            19
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "MaskToImage",
+        "cnr_id": "comfy-core"
+      }
+    },
+    {
+      "id": 17,
+      "type": "PreviewImage",
+      "pos": [
+        400,
+        1130
+      ],
+      "size": [
+        360,
+        420
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 19
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage",
+        "cnr_id": "comfy-core"
+      },
+      "title": "① 기존 RF-DETR 마스크"
+    },
+    {
+      "id": 18,
+      "type": "MaskToImage",
+      "pos": [
+        790,
+        970
+      ],
+      "size": [
+        300,
+        120
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 20
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            21
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "MaskToImage",
+        "cnr_id": "comfy-core"
+      }
+    },
+    {
+      "id": 19,
+      "type": "PreviewImage",
+      "pos": [
+        780,
+        1130
+      ],
+      "size": [
+        360,
+        420
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 21
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage",
+        "cnr_id": "comfy-core"
+      },
+      "title": "② SAM 전체 글자 마스크"
+    },
+    {
+      "id": 20,
+      "type": "KoharuDetectionMaskPage",
+      "pos": [
+        1190,
+        860
+      ],
+      "size": [
+        300,
+        120
+      ],
+      "flags": {},
+      "order": 20,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "result",
+          "type": "KOHARU_RESULT",
+          "link": 22
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [
+            23,
+            27
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "KoharuDetectionMaskPage"
+      },
+      "widgets_values": [
+        "text",
+        false
+      ],
+      "widgets_values_named": {
+        "labels": "text",
+        "client_nms": false
+      }
+    },
+    {
+      "id": 21,
+      "type": "MaskToImage",
+      "pos": [
+        1190,
+        970
+      ],
+      "size": [
+        300,
+        120
+      ],
+      "flags": {},
+      "order": 21,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 23
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            24
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "MaskToImage",
+        "cnr_id": "comfy-core"
+      }
+    },
+    {
+      "id": 22,
+      "type": "PreviewImage",
+      "pos": [
+        1160,
+        1130
+      ],
+      "size": [
+        360,
+        420
+      ],
+      "flags": {},
+      "order": 23,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 24
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage",
+        "cnr_id": "comfy-core"
+      },
+      "title": "③ 클라이언트 전달 마스크"
+    },
+    {
+      "id": 23,
+      "type": "EmptyImage",
+      "pos": [
+        1580,
+        590
+      ],
+      "size": [
+        300,
+        120
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            26
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "EmptyImage",
+        "cnr_id": "comfy-core"
+      },
+      "widgets_values": [
+        64,
+        64,
+        1,
+        65280
+      ],
+      "widgets_values_named": {
+        "width": 64,
+        "height": 64,
+        "batch_size": 1,
+        "color": 65280
+      }
+    },
+    {
+      "id": 24,
+      "type": "ImageCompositeMasked",
+      "pos": [
+        1920,
+        590
+      ],
+      "size": [
+        300,
+        120
+      ],
+      "flags": {},
+      "order": 22,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "destination",
+          "type": "IMAGE",
+          "link": 25
+        },
+        {
+          "name": "source",
+          "type": "IMAGE",
+          "link": 26
+        },
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 27,
+          "shape": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            29
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageCompositeMasked",
+        "cnr_id": "comfy-core"
+      },
+      "widgets_values": [
+        0,
+        0,
+        true
+      ],
+      "widgets_values_named": {
+        "x": 0,
+        "y": 0,
+        "resize_source": true
+      }
+    },
+    {
+      "id": 25,
+      "type": "ImageBlend",
+      "pos": [
+        2260,
+        590
+      ],
+      "size": [
+        300,
+        120
+      ],
+      "flags": {},
+      "order": 24,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image1",
+          "type": "IMAGE",
+          "link": 28
+        },
+        {
+          "name": "image2",
+          "type": "IMAGE",
+          "link": 29
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            30
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageBlend",
+        "cnr_id": "comfy-core"
+      },
+      "widgets_values": [
+        0.35,
+        "normal"
+      ],
+      "widgets_values_named": {
+        "blend_factor": 0.35,
+        "blend_mode": "normal"
+      }
+    },
+    {
+      "id": 26,
+      "type": "PreviewImage",
+      "pos": [
+        1550,
+        1130
+      ],
+      "size": [
+        360,
+        420
+      ],
+      "flags": {},
+      "order": 25,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 30
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage",
+        "cnr_id": "comfy-core"
+      },
+      "title": "④ 원본 위 최종 마스크"
+    },
+    {
+      "id": 27,
+      "type": "Note",
+      "title": "사용법과 비교 옵션",
+      "pos": [
+        2630,
+        570
+      ],
+      "size": [
+        570,
+        520
+      ],
+      "flags": {},
+      "order": 26,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "Note"
+      },
+      "widgets_values": [
+        "후보 감지 워크플로우: RF-DETR 영역 + SAM-TS-L 글자 마스크.\n설치: 저장소 업데이트 → prepare_text_sam.py로 전체 모델 다운로드 → ComfyUI 재시작.\nSAM 모델 폴더: models/koharu/text_masks/koharu-text-sam-ts-l.\nKoharu 메뉴에서 감지 단계에 적용한 뒤 준비. 기존 페이지는 재감지해야 반영됩니다.\nApply enabled=false: 기존 마스크 유지(비교용); true: SAM 적용.\nreplace: SAM 마스크로 교체 / union: 기존 마스크와 합집합.\nempty_fallback: SAM이 해당 영역을 못 찾으면 기존 마스크 유지.\nrecover_missed: 기존 글자 영역 밖의 SAM 픽셀을 새 text 영역으로 추가. 기본 false; 그림 오탐/문장 그룹이 어색하면 끄세요. 새 영역 score=0은 미보정 점수임을 뜻합니다.\nmode=full_page: 공개 모델의 전체 페이지 처리. tiles: 작은 글자를 위한 겹치는 타일 처리.\nthreshold=0 기본; 낮추면 더 넓은 글자 픽셀을 포함할 수 있습니다.\nprecision=bf16 기본; CUDA BF16 문제가 생기면 fp32로 변경 후 준비.\n기본 GrowMask expand=0. 획 테두리가 남으면 2~4 비교; padding 8 안에서 확장하세요.\n실제 DGX 속도/품질은 실행 후 확인해야 합니다.\n겹친 영역 병합 노드: 클라이언트 IoU 0.5 중복 제거 전에 마스크를 합쳐 글자 픽셀을 보존합니다. enabled=true, labels=text, expand_bbox=true 기본.\n감지 메뉴에 적용한 뒤 새 페이지 또는 재감지로 기존 마스크를 갱신하세요.\n처리 대상 선택: effects=keep은 기존 분류 유지, as_text는 OCR·번역·인페인트 포함, exclude는 감지 결과에서 제외합니다. 본문·말풍선·패널도 각각 선택할 수 있습니다."
+      ]
+    },
+    {
+      "id": 28,
+      "type": "KoharuDetectionMergeOverlaps",
+      "title": "Koharu 겹친 영역 병합 · 마스크 보존",
+      "pos": [
+        3310,
+        220
+      ],
+      "size": [
+        330,
+        160
+      ],
+      "flags": {},
+      "order": 18,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "result",
+          "type": "KOHARU_RESULT",
+          "link": 31
+        }
+      ],
+      "outputs": [
+        {
+          "name": "KOHARU_RESULT",
+          "type": "KOHARU_RESULT",
+          "links": [
+            7,
+            22
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "KoharuDetectionMergeOverlaps"
+      },
+      "widgets_values": [
+        true,
+        "text",
+        true
+      ],
+      "widgets_values_named": {
+        "enabled": true,
+        "labels": "text",
+        "expand_bbox": true
+      }
+    },
+    {
+      "id": 29,
+      "type": "KoharuDetectionPolicy",
+      "title": "Koharu 처리 대상 선택",
+      "pos": [
+        2950,
+        220
+      ],
+      "size": [
+        330,
+        190
+      ],
+      "flags": {},
+      "order": 17,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "result",
+          "type": "KOHARU_RESULT",
+          "link": 32
+        }
+      ],
+      "outputs": [
+        {
+          "name": "KOHARU_RESULT",
+          "type": "KOHARU_RESULT",
+          "links": [
+            31
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "KoharuDetectionPolicy"
+      },
+      "widgets_values": [
+        true,
+        "keep",
+        true,
+        true
+      ],
+      "widgets_values_named": {
+        "include_text": true,
+        "effects": "keep",
+        "include_bubbles": true,
+        "include_panels": true
+      }
+    }
+  ],
+  "links": [
+    [
+      1,
+      4,
+      0,
+      1,
+      0,
+      "IMAGE"
+    ],
+    [
+      2,
+      4,
+      1,
+      1,
+      1,
+      "MASK"
+    ],
+    [
+      3,
+      1,
+      0,
+      2,
+      0,
+      "IMAGE"
+    ],
+    [
+      4,
+      1,
+      2,
+      2,
+      2,
+      "STRING"
+    ],
+    [
+      5,
+      11,
+      0,
+      2,
+      1,
+      "KOHARU_DETECTOR_MODEL"
+    ],
+    [
+      6,
+      1,
+      2,
+      3,
+      1,
+      "STRING"
+    ],
+    [
+      7,
+      28,
+      0,
+      3,
+      0,
+      "KOHARU_RESULT"
+    ],
+    [
+      8,
+      14,
+      0,
+      5,
+      0,
+      "KOHARU_RESULT"
+    ],
+    [
+      9,
+      5,
+      0,
+      6,
+      0,
+      "MASK"
+    ],
+    [
+      10,
+      6,
+      0,
+      7,
+      0,
+      "MASK"
+    ],
+    [
+      11,
+      7,
+      0,
+      8,
+      0,
+      "MASK"
+    ],
+    [
+      12,
+      5,
+      1,
+      8,
+      1,
+      "KOHARU_MASK_CONTEXT"
+    ],
+    [
+      13,
+      1,
+      0,
+      13,
+      0,
+      "IMAGE"
+    ],
+    [
+      14,
+      12,
+      0,
+      13,
+      1,
+      "KOHARU_TEXT_MASK_MODEL"
+    ],
+    [
+      15,
+      2,
+      0,
+      14,
+      0,
+      "KOHARU_RESULT"
+    ],
+    [
+      16,
+      13,
+      0,
+      14,
+      1,
+      "MASK"
+    ],
+    [
+      17,
+      2,
+      0,
+      15,
+      0,
+      "KOHARU_RESULT"
+    ],
+    [
+      18,
+      15,
+      0,
+      16,
+      0,
+      "MASK"
+    ],
+    [
+      19,
+      16,
+      0,
+      17,
+      0,
+      "IMAGE"
+    ],
+    [
+      20,
+      13,
+      0,
+      18,
+      0,
+      "MASK"
+    ],
+    [
+      21,
+      18,
+      0,
+      19,
+      0,
+      "IMAGE"
+    ],
+    [
+      22,
+      28,
+      0,
+      20,
+      0,
+      "KOHARU_RESULT"
+    ],
+    [
+      23,
+      20,
+      0,
+      21,
+      0,
+      "MASK"
+    ],
+    [
+      24,
+      21,
+      0,
+      22,
+      0,
+      "IMAGE"
+    ],
+    [
+      25,
+      1,
+      0,
+      24,
+      0,
+      "IMAGE"
+    ],
+    [
+      26,
+      23,
+      0,
+      24,
+      1,
+      "IMAGE"
+    ],
+    [
+      27,
+      20,
+      0,
+      24,
+      2,
+      "MASK"
+    ],
+    [
+      28,
+      1,
+      0,
+      25,
+      0,
+      "IMAGE"
+    ],
+    [
+      29,
+      24,
+      0,
+      25,
+      1,
+      "IMAGE"
+    ],
+    [
+      30,
+      25,
+      0,
+      26,
+      0,
+      "IMAGE"
+    ],
+    [
+      31,
+      29,
+      0,
+      28,
+      0,
+      "KOHARU_RESULT"
+    ],
+    [
+      32,
+      8,
+      0,
+      29,
+      0,
+      "KOHARU_RESULT"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.5,
+      "offset": [
+        80,
+        20
+      ]
+    }
+  },
+  "version": 0.4
+}

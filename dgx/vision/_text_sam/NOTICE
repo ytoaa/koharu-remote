@@ -1,0 +1,12 @@
+Hi-SAM inference modules from https://github.com/ymy-k/Hi-SAM
+Revision: 69009434d4dba5541f228d8f5acb0754c333d417
+Copyright Meta Platforms, Inc. and affiliates and Hi-SAM contributors.
+Licensed under Apache License 2.0; the full license is in LICENSE.
+
+Included modules: hi_sam, image_encoder, mask_decoder, prompt_encoder,
+modal_aligner, transformer, common. Training, datasets, EfficientSAM and
+checkpoint pickle loading are not included.
+
+Local change: inference-only image-encoder blocks call attention and MLP
+directly rather than activation checkpointing. Training retains upstream
+checkpoint calls with use_reentrant=False. No global Torch monkeypatch is used.

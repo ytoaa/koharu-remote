@@ -1,0 +1,117 @@
+{
+  "1": {
+    "class_type": "KoharuInput",
+    "inputs": {
+      "request_id": "",
+      "image": [
+        "4",
+        0
+      ],
+      "mask": [
+        "4",
+        1
+      ]
+    }
+  },
+  "2": {
+    "class_type": "KoharuOCR",
+    "inputs": {
+      "images": [
+        "5",
+        0
+      ],
+      "request_id": [
+        "1",
+        2
+      ],
+      "max_new_tokens": 256,
+      "repetition_penalty": 1.0,
+      "num_beams": 1,
+      "length_penalty": 1.0,
+      "early_stopping": true,
+      "retry_on_repetition": true,
+      "retry_repetition_penalty": 1.1,
+      "max_patches": 512,
+      "model": [
+        "8",
+        0
+      ]
+    }
+  },
+  "3": {
+    "class_type": "KoharuOCROutput",
+    "inputs": {
+      "request_id": [
+        "1",
+        2
+      ],
+      "text": [
+        "6",
+        0
+      ],
+      "metadata": [
+        "6",
+        1
+      ],
+      "model_id": "workflow/ocr",
+      "revision": "workflow"
+    }
+  },
+  "4": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": ""
+    }
+  },
+  "5": {
+    "class_type": "KoharuOCRLineCrops",
+    "inputs": {
+      "images": [
+        "1",
+        0
+      ],
+      "enabled": true,
+      "direction": "auto",
+      "polarity": "auto",
+      "background_window": 31,
+      "contrast": 16.0,
+      "ink_fraction": 0.002,
+      "min_gap": 4,
+      "min_line_extent": 8,
+      "padding": 2,
+      "max_lines": 32
+    }
+  },
+  "6": {
+    "class_type": "KoharuOCRJoin",
+    "inputs": {
+      "text": [
+        "2",
+        0
+      ],
+      "metadata": [
+        "2",
+        1
+      ],
+      "layout": [
+        "5",
+        1
+      ]
+    }
+  },
+  "7": {
+    "class_type": "PreviewImage",
+    "inputs": {
+      "images": [
+        "5",
+        0
+      ]
+    }
+  },
+  "8": {
+    "class_type": "KoharuOCRModelLoader",
+    "inputs": {
+      "model_name": "hayai-ocr-v2"
+    }
+  }
+}
