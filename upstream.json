@@ -1,6 +1,6 @@
 {
   "repository": "koharu-rs/koharu",
-  "version": "0.83.5",
-  "commit": "52bb4f55e2266f72c1523562a583c827ec191ceb",
+  "version": "0.96.0",
+  "commit": "51284c66d7eb44a9f9c63f613cf03e223966ddbc",
   "patch_version": "0.9.0"
 }
